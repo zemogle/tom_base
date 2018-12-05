@@ -9,6 +9,7 @@ SITES = {
     }
 }
 
+
 class FakeFacility:
     name = 'Fake Facility'
 

@@ -1,19 +1,13 @@
-from io import StringIO
 from datetime import datetime, timedelta
 from unittest import mock
-from unittest.mock import patch
 
 from django.test import TestCase
-from django.urls import reverse
-from django.conf import settings
 
 import ephem
 from rise_set.angle import Angle
 from rise_set.astrometry import calc_sunrise_set
 
 from .factories import TargetFactory, ObservingRecordFactory
-from tom_targets.models import Target
-from tom_observations.models import ObservationRecord
 from tom_observations.facilities.lco import LCOFacility
 from tom_observations.utils import get_rise_set, get_last_rise_set_pair, get_next_rise_set_pair
 
@@ -40,6 +34,7 @@ class TestLCOFacility(TestCase):
             LCOFacility().update_all_observation_statuses(target=self.t1)
             self.assertEquals(uos_mock.call_count, 1)
 
+
 class TestRiseSet(TestCase):
 
     def setUp(self):
@@ -52,7 +47,13 @@ class TestRiseSet(TestCase):
 
     def test_get_rise_set_valid(self):
         rise_set = get_rise_set(self.observer, self.sun, datetime(2018, 10, 10), datetime(2018, 10, 11))
-        self.assertListEqual([(datetime(2018, 10, 9, 13, 53, 16), datetime(2018, 10, 10, 1, 26, 33)),                               (datetime(2018, 10, 10, 13, 54, 2), datetime(2018, 10, 11, 1, 25, 15))],                               rise_set)
+        self.assertListEqual(
+            [
+                (datetime(2018, 10, 9, 13, 53, 16), datetime(2018, 10, 10, 1, 26, 33)),
+                (datetime(2018, 10, 10, 13, 54, 2), datetime(2018, 10, 11, 1, 25, 15))
+            ],
+            rise_set
+        )
 
     def test_get_rise_set_against_lco_rise_set(self):
         lco = LCOFacility()
@@ -76,11 +77,16 @@ class TestRiseSet(TestCase):
         self.assertLessEqual(set_delta - control_set, abs(timedelta(minutes=5)))
 
     def test_get_rise_set_no_results(self):
-        rise_set = get_rise_set(self.observer, self.sun, datetime(2018, 10, 10, 7, 0, 0), datetime(2018, 10, 10, 7, 0, 1))
+        rise_set = get_rise_set(
+            self.observer, self.sun, datetime(2018, 10, 10, 7, 0, 0), datetime(2018, 10, 10, 7, 0, 1)
+        )
         self.assertEqual(len(rise_set), 0)
 
     def test_get_rise_set_invalid_params(self):
-        self.assertRaisesRegex(Exception, 'Start must be before end', get_rise_set, self.observer, self.sun, datetime(2018, 10, 10), datetime(2018, 10, 9))
+        self.assertRaisesRegex(
+            Exception, 'Start must be before end', get_rise_set,
+            self.observer, self.sun, datetime(2018, 10, 10), datetime(2018, 10, 9)
+        )
 
     def test_get_last_rise_set_pair(self):
         rise_set_pair = get_last_rise_set_pair(self.rise_set, -1)
